@@ -44,7 +44,7 @@ func writeMnemonic(mnemonic, path, addr string) error {
 }
 
 // writeKey creates and stores the HD addresses, writing each public key to the console
-func writeKey(mnemonic, path, password string, w *hdwallet.Wallet) error {
+func writeKey(path, mnemonic, password string, w *hdwallet.Wallet) error {
 	ks := keystore.NewKeyStore(path, keystore.StandardScryptN, keystore.StandardScryptP)
 	// Create the account
 	_, pkey, err := w.KeysForIndex(0)
@@ -70,7 +70,7 @@ func writeKey(mnemonic, path, password string, w *hdwallet.Wallet) error {
 
 func main() {
 	f := flag.NewFlagSet("", flag.ExitOnError)
-	dir := f.String("keystore", "", "Optional directory name to store the accounts")
+	path := f.String("keystore", "", "Optional directory name to store the accounts")
 	if len(os.Args) < 2 {
 		usage()
 		log.Fatalln(errors.New("Requires partial address match arg"))
@@ -106,8 +106,8 @@ func main() {
 		fmt.Fprintf(os.Stderr, "\033[2K\r%d generated...", i)
 	}
 
-	if *dir != "" {
-		err = writeKey(mnemonic, *dir, password, w)
+	if *path != "" {
+		err = writeKey(*path, mnemonic, password, w)
 	} else {
 		err = outputKey(mnemonic, w)
 	}

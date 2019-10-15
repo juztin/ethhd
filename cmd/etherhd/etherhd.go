@@ -4,7 +4,10 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/console"
@@ -23,8 +26,11 @@ func usage() {
 }
 
 // outputKeys writes HD public/private key-pairs to the console
-func outputKeys(count, index int, w *hdwallet.Wallet) error {
+func outputKeys(mnemonic string, count, index int, w *hdwallet.Wallet) error {
 	for ; index < count; index++ {
+		if index == 0 {
+			fmt.Println(mnemonic)
+		}
 		key, pkey, err := w.KeysForIndex(index)
 		if err != nil {
 			return err
@@ -34,9 +40,18 @@ func outputKeys(count, index int, w *hdwallet.Wallet) error {
 	return nil
 }
 
+func writeMnemonic(mnemonic, path, addr string) error {
+	p := filepath.Join(path, fmt.Sprintf("mnemonic-%s", addr))
+	f, err := os.Create(p)
+	if err == nil {
+		_, err = io.WriteString(f, mnemonic)
+	}
+	return err
+}
+
 // writeKeys creates and stores the HD addresses, writing each public key to the console
-func writeKeys(ksPath, ksPassword string, count, index int, w *hdwallet.Wallet) error {
-	ks := keystore.NewKeyStore(ksPath, keystore.StandardScryptN, keystore.StandardScryptP)
+func writeKeys(path, mnemonic, password string, count, index int, w *hdwallet.Wallet) error {
+	ks := keystore.NewKeyStore(path, keystore.StandardScryptN, keystore.StandardScryptP)
 	for ; index < count; index++ {
 		// Create the account
 		_, pkey, err := w.KeysForIndex(index)
@@ -48,11 +63,18 @@ func writeKeys(ksPath, ksPassword string, count, index int, w *hdwallet.Wallet) 
 		if err != nil {
 			return fmt.Errorf("Failed to generate ECDSA at index: %d, %v", index, err)
 		}
-		a, err := ks.ImportECDSA(k, ksPassword)
+		a, err := ks.ImportECDSA(k, password)
 		if err != nil {
 			return fmt.Errorf("Failed to export account at index: %d, %v", index, err)
 		}
-		fmt.Println(a.Address.Hex())
+		addr := a.Address.Hex()
+		fmt.Println(addr)
+		if index == 0 {
+			err = writeMnemonic(mnemonic, path, addr)
+			if err != nil {
+				return errors.New("Failed to write mnemonic file")
+			}
+		}
 	}
 	return nil
 }
@@ -61,7 +83,7 @@ func main() {
 	count := flag.Int("count", 1, "The number of HD Wallet accounts to create (default 1)")
 	index := flag.Int("index", 0, "The index of the derivation path (default 0)")
 	mnemonic := flag.String("mnemonic", "", "A BIP-39 mnemonic to use, or a randomly generated one when not set")
-	dir := flag.String("keystore", "", "Optional directory name to store the accounts")
+	path := flag.String("keystore", "", "Optional directory name to store the accounts")
 	flag.Parse()
 
 	if *count < 1 {
@@ -82,10 +104,8 @@ func main() {
 	var w *hdwallet.Wallet
 	if *mnemonic == "" && password == "" {
 		w, *mnemonic, err = hdwallet.New()
-		fmt.Println(*mnemonic)
 	} else if *mnemonic == "" {
 		w, *mnemonic, err = hdwallet.NewFromPassword(password)
-		fmt.Println(*mnemonic)
 	} else {
 		w, err = hdwallet.NewFromMnemonicAndPassword(*mnemonic, password)
 	}
@@ -96,10 +116,10 @@ func main() {
 
 	// Process accounts
 	*count = *index + *count
-	if *dir != "" {
-		err = writeKeys(*dir, password, *count, *index, w)
+	if *path != "" {
+		err = writeKeys(*path, *mnemonic, password, *count, *index, w)
 	} else {
-		err = outputKeys(*count, *index, w)
+		err = outputKeys(*mnemonic, *count, *index, w)
 	}
 
 	if err != nil {

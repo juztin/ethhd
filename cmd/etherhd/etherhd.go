@@ -1,12 +1,13 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
+	"github.com/ethereum/go-ethereum/console"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/juztin/etherhd"
@@ -59,39 +60,34 @@ func writeKeys(ksPath, ksPassword string, count, index int, w *hdwallet.Wallet) 
 func main() {
 	count := flag.Int("count", 1, "The number of HD Wallet accounts to create (default 1)")
 	index := flag.Int("index", 0, "The index of the derivation path (default 0)")
-	password := flag.String("password", "", "The password used for the BIP-39 seed")
 	mnemonic := flag.String("mnemonic", "", "A BIP-39 mnemonic to use, or a randomly generated one when not set")
-	keyDir := flag.String("keystoredir", "", "Optional directory name to store the accounts")
-	keyPassword := flag.String("keystorepassword", "", "Password to use for keystore encryption")
+	dir := flag.String("keystore", "", "Optional directory name to store the accounts")
 	flag.Parse()
+
 	if *count < 1 {
-		fmt.Println("A count greater than 0 is required\n")
+		fmt.Println("\n")
 		usage()
-		os.Exit(1)
+		log.Fatalln(errors.New("A count greater than 0 is required"))
 	}
 	if *index < 0 {
-		fmt.Println(*index)
-		fmt.Println("An index greater than, or equal to 0 is required\n")
+		log.Fatalln(errors.New("An index greater than, or equal to 0 is required"))
 		usage()
-		os.Exit(1)
 	}
-	if *keyDir != "" && *keyPassword == "" {
-		fmt.Println("A keystorepassword is required when a keystoredir is supplied\n")
-		usage()
-		os.Exit(1)
+	password, err := console.Stdin.PromptPassword("Password: ")
+	if err != nil {
+		log.Fatalln(err)
 	}
 
 	// Create the HD Wallet
 	var w *hdwallet.Wallet
-	var err error
-	if *mnemonic == "" && *password == "" {
+	if *mnemonic == "" && password == "" {
 		w, *mnemonic, err = hdwallet.New()
 		fmt.Println(*mnemonic)
 	} else if *mnemonic == "" {
-		w, *mnemonic, err = hdwallet.NewFromPassword(*password)
+		w, *mnemonic, err = hdwallet.NewFromPassword(password)
 		fmt.Println(*mnemonic)
 	} else {
-		w, err = hdwallet.NewFromMnemonicAndPassword(*mnemonic, *password)
+		w, err = hdwallet.NewFromMnemonicAndPassword(*mnemonic, password)
 	}
 
 	if err != nil {
@@ -100,8 +96,8 @@ func main() {
 
 	// Process accounts
 	*count = *index + *count
-	if *keyDir != "" {
-		err = writeKeys(*keyDir, *keyPassword, *count, *index, w)
+	if *dir != "" {
+		err = writeKeys(*dir, password, *count, *index, w)
 	} else {
 		err = outputKeys(*count, *index, w)
 	}

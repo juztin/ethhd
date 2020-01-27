@@ -1,4 +1,4 @@
-module github.com/juztin/etherhd
+module github.com/juztin/ethhd
 
 go 1.13
 

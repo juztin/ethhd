@@ -5,7 +5,7 @@ Creates HD Wallet addresses based on a given password/mnemonic.
 ### Install
 
 ```shell
-% go install github.com/juztin/ethhd/cmd/ethhd
+% go get github.com/juztin/ethhd/cmd/...
 ```
 
 ### Usage

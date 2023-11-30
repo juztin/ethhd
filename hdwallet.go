@@ -1,10 +1,10 @@
-package hdwallet
+package ethhd
 
 import (
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/accounts"
-	"github.com/juztin/go-ethereum-hdwallet"
+	hdwallet "github.com/juztin/go-ethereum-hdwallet"
 	"github.com/tyler-smith/go-bip39"
 )
 

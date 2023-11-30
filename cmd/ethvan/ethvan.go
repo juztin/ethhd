@@ -11,10 +11,12 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
-	"github.com/ethereum/go-ethereum/console"
+	"github.com/ethereum/go-ethereum/common"
+
+	//"github.com/ethereum/go-ethereum/console"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/juztin/ethhd"
+	hdwallet "github.com/juztin/ethhd"
 )
 
 func usage() {
@@ -75,15 +77,18 @@ func main() {
 		usage()
 		log.Fatalln(errors.New("Requires partial address match arg"))
 	}
+	isContract := f.Bool("contract", false, "Generate vanity contract address")
 	f.Parse(os.Args[2:])
 
 	var w *hdwallet.Wallet
 	var mnemonic string
 	prefix := strings.ToLower("0x" + os.Args[1])
-	password, err := console.Stdin.PromptPassword("Password: ")
-	if err != nil {
-		log.Fatalln(err)
-	}
+	//password, err := console.Stdin.PromptPassword("Password: ")
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
+	var err error
+	password := ""
 
 	// Create the wallet
 	for i := 0; ; i++ {
@@ -98,6 +103,12 @@ func main() {
 		k, _, err := w.KeysForIndex(0)
 		if err != nil {
 			log.Fatalln(err)
+		} else if *isContract {
+			contract := crypto.CreateAddress(common.HexToAddress(k), 0)
+			if strings.HasPrefix(strings.ToLower(contract.String()), prefix) {
+				fmt.Printf("\nContract: %s\n", contract.String())
+				break
+			}
 		} else if strings.HasPrefix(strings.ToLower(k), prefix) {
 			//i--
 			fmt.Println()

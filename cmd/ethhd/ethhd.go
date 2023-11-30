@@ -10,10 +10,10 @@ import (
 	"path/filepath"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
-	"github.com/ethereum/go-ethereum/console"
+	//"github.com/ethereum/go-ethereum/console"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/juztin/ethhd"
+	hdwallet "github.com/juztin/ethhd"
 )
 
 func usage() {
@@ -95,19 +95,23 @@ func main() {
 		log.Fatalln(errors.New("An index greater than, or equal to 0 is required"))
 		usage()
 	}
-	password, err := console.Stdin.PromptPassword("Password: ")
-	if err != nil {
-		log.Fatalln(err)
-	}
+	password := ""
+	var err error
+	//password, err := console.Stdin.PromptPassword("Password: ")
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
 
 	// Create the HD Wallet
 	var w *hdwallet.Wallet
 	if *mnemonic == "" && password == "" {
 		w, *mnemonic, err = hdwallet.New()
 	} else if *mnemonic == "" {
-		w, *mnemonic, err = hdwallet.NewFromPassword(password)
+		//w, *mnemonic, err = hdwallet.NewFromPassword(password)
+		w, *mnemonic, err = hdwallet.New()
 	} else {
-		w, err = hdwallet.NewFromMnemonicAndPassword(*mnemonic, password)
+		//w, err = hdwallet.NewFromMnemonicAndPassword(*mnemonic, password)
+		w, err = hdwallet.NewFromMnemonic(*mnemonic)
 	}
 
 	if err != nil {

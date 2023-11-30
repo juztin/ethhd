@@ -13,7 +13,7 @@ import (
 	//"github.com/ethereum/go-ethereum/console"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	hdwallet "github.com/juztin/ethhd"
+	"github.com/juztin/ethhd"
 )
 
 func usage() {
@@ -26,7 +26,7 @@ func usage() {
 }
 
 // outputKeys writes HD public/private key-pairs to the console
-func outputKeys(mnemonic string, count, index int, w *hdwallet.Wallet) error {
+func outputKeys(mnemonic string, count, index int, w *ethhd.Wallet) error {
 	for ; index < count; index++ {
 		if index == 0 {
 			fmt.Println(mnemonic)
@@ -50,7 +50,7 @@ func writeMnemonic(mnemonic, path, addr string) error {
 }
 
 // writeKeys creates and stores the HD addresses, writing each public key to the console
-func writeKeys(path, mnemonic, password string, count, index int, w *hdwallet.Wallet) error {
+func writeKeys(path, mnemonic, password string, count, index int, w *ethhd.Wallet) error {
 	ks := keystore.NewKeyStore(path, keystore.StandardScryptN, keystore.StandardScryptP)
 	for ; index < count; index++ {
 		// Create the account
@@ -103,15 +103,15 @@ func main() {
 	//}
 
 	// Create the HD Wallet
-	var w *hdwallet.Wallet
+	var w *ethhd.Wallet
 	if *mnemonic == "" && password == "" {
-		w, *mnemonic, err = hdwallet.New()
+		w, *mnemonic, err = ethhd.New()
 	} else if *mnemonic == "" {
-		//w, *mnemonic, err = hdwallet.NewFromPassword(password)
-		w, *mnemonic, err = hdwallet.New()
+		//w, *mnemonic, err = ethhd.NewFromPassword(password)
+		w, *mnemonic, err = ethhd.New()
 	} else {
-		//w, err = hdwallet.NewFromMnemonicAndPassword(*mnemonic, password)
-		w, err = hdwallet.NewFromMnemonic(*mnemonic)
+		//w, err = ethhd.NewFromMnemonicAndPassword(*mnemonic, password)
+		w, err = ethhd.NewFromMnemonic(*mnemonic)
 	}
 
 	if err != nil {

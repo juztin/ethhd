@@ -16,7 +16,7 @@ import (
 	//"github.com/ethereum/go-ethereum/console"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	hdwallet "github.com/juztin/ethhd"
+	"github.com/juztin/ethhd"
 )
 
 func usage() {
@@ -27,7 +27,7 @@ func usage() {
 }
 
 // outputKey writes HD public/private key-pairs to the console
-func outputKey(mnemonic string, w *hdwallet.Wallet) error {
+func outputKey(mnemonic string, w *ethhd.Wallet) error {
 	key, pkey, err := w.KeysForIndex(0)
 	if err != nil {
 		return err
@@ -46,7 +46,7 @@ func writeMnemonic(mnemonic, path, addr string) error {
 }
 
 // writeKey creates and stores the HD addresses, writing each public key to the console
-func writeKey(path, mnemonic, password string, w *hdwallet.Wallet) error {
+func writeKey(path, mnemonic, password string, w *ethhd.Wallet) error {
 	ks := keystore.NewKeyStore(path, keystore.StandardScryptN, keystore.StandardScryptP)
 	// Create the account
 	_, pkey, err := w.KeysForIndex(0)
@@ -80,7 +80,7 @@ func main() {
 	isContract := f.Bool("contract", false, "Generate vanity contract address")
 	f.Parse(os.Args[2:])
 
-	var w *hdwallet.Wallet
+	var w *ethhd.Wallet
 	var mnemonic string
 	prefix := strings.ToLower("0x" + os.Args[1])
 	//password, err := console.Stdin.PromptPassword("Password: ")
@@ -93,9 +93,9 @@ func main() {
 	// Create the wallet
 	for i := 0; ; i++ {
 		if password != "" {
-			w, mnemonic, err = hdwallet.NewFromPassword(password)
+			w, mnemonic, err = ethhd.NewFromPassword(password)
 		} else {
-			w, mnemonic, err = hdwallet.New()
+			w, mnemonic, err = ethhd.New()
 		}
 		if err != nil {
 			log.Fatalln(err)
